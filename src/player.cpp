@@ -1039,7 +1039,9 @@ void Player::onCreatureAppear(Creature* creature, bool isLogin)
 		Account account = IOLoginData::loadAccount(accountNumber);
 		Game::updatePremium(account);
 
-		std::cout << name << " has logged in." << std::endl;
+		if (g_config.getBoolean(ConfigManager::PLAYER_CONSOLE_LOGS)) {
+			std::cout << name << " has logged in." << std::endl;
+		}
 
 		if (guild) {
 			guild->addMember(this);
@@ -1139,7 +1141,9 @@ void Player::onRemoveCreature(Creature* creature, bool isLogout)
 
 		g_chat->removeUserFromAllChannels(*this);
 
-		std::cout << getName() << " has logged out." << std::endl;
+		if (g_config.getBoolean(ConfigManager::PLAYER_CONSOLE_LOGS)) {
+			std::cout << getName() << " has logged out." << std::endl;
+		}
 
 		if (guild) {
 			guild->removeMember(this);
@@ -1730,7 +1734,7 @@ BlockType_t Player::blockHit(Creature* attacker, CombatType_t combatType, int32_
 {
 	BlockType_t blockType = Creature::blockHit(attacker, combatType, damage, checkDefense, checkArmor, field);
 
-	if (attacker) {
+	if (attacker && combatType != COMBAT_HEALING) {
 		sendCreatureSquare(attacker, SQ_COLOR_BLACK);
 	}
 
@@ -3175,6 +3179,15 @@ void Player::onEndCondition(ConditionType_t type)
 		onIdleStatus();
 		pzLocked = false;
 		clearAttacked();
+		
+		for (const auto& playerAttackers : g_game.getPlayers()) {
+			Player* attacker = playerAttackers.second;
+			if (attacker->hasAttacked(this))
+			{
+				attacker->removeAttacked(this);
+				sendCreatureSkull(attacker);
+			}
+		}
 
 		if (getSkull() != SKULL_RED) {
 			setSkull(SKULL_NONE);

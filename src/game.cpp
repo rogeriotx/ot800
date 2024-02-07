@@ -2280,7 +2280,7 @@ void Game::playerRequestTrade(uint32_t playerId, const Position& pos, uint8_t st
 		if (HouseTile* houseTile = dynamic_cast<HouseTile*>(tradeItem->getTile())) {
 			House* house = houseTile->getHouse();
 			if (house && !house->isInvited(player)) {
-				player->sendCancelMessage(RETURNVALUE_NOTPOSSIBLE);
+				player->sendCancelMessage(RETURNVALUE_PLAYERISNOTINVITED);
 				return;
 			}
 		}
@@ -3208,8 +3208,8 @@ void Game::checkCreatures(size_t index)
 		Creature* creature = *it;
 		if (creature->creatureCheck) {
 			if (creature->getHealth() > 0) {
-				creature->onThink(EVENT_CREATURE_THINK_INTERVAL);
 				creature->onAttacking(EVENT_CREATURE_THINK_INTERVAL);
+				creature->onThink(EVENT_CREATURE_THINK_INTERVAL);
 				creature->executeConditions(EVENT_CREATURE_THINK_INTERVAL);
 			} else {
 				creature->onDeath();
